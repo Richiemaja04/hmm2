@@ -1,0 +1,76 @@
+# Behavioral Biometrics Authentication Agent - Python Dependencies
+# Core framework and web server
+Flask==2.3.3
+Flask-SocketIO==5.3.6
+Werkzeug==2.3.7
+eventlet==0.33.3
+python-socketio==5.8.0
+
+# Database and ORM
+SQLAlchemy==2.0.21
+Flask-SQLAlchemy==3.0.5
+
+# Security and authentication
+PyJWT==2.8.0
+cryptography==41.0.4
+bcrypt==4.0.1
+
+# Machine Learning - TensorFlow/Keras
+tensorflow==2.13.0
+keras==2.13.1
+
+# Machine Learning - Scikit-learn
+scikit-learn==1.3.0
+numpy==1.24.3
+pandas==2.0.3
+scipy==1.11.2
+
+# Statistical analysis and drift detection
+statsmodels==0.14.0
+
+# Data processing and utilities
+joblib==1.3.2
+pickle-mixin==1.0.2
+
+# Logging and monitoring
+python-dotenv==1.0.0
+logging-tree==1.8.1
+
+# Development and testing
+pytest==7.4.2
+pytest-flask==1.2.0
+pytest-cov==4.1.0
+black==23.7.0
+flake8==6.0.0
+mypy==1.5.1
+
+# Production server
+gunicorn==21.2.0
+redis==4.6.0
+
+# Additional utilities
+click==8.1.7
+itsdangerous==2.1.2
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+python-dateutil==2.8.2
+pytz==2023.3
+six==1.16.0
+urllib3==2.0.4
+
+# Optional: For enhanced performance
+psutil==5.9.5
+memory-profiler==0.60.0
+
+# Optional: For database alternatives
+psycopg2-binary==2.9.7  # PostgreSQL support
+pymongo==4.5.0          # MongoDB support
+
+# Optional: For advanced analytics
+matplotlib==3.7.2
+seaborn==0.12.2
+plotly==5.16.1
+
+# Development server enhancements
+flask-cors==4.0.0
+flask-limiter==3.5.0

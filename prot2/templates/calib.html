@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Behavioral Calibration - SecureAuth</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Behavioral biometrics calibration for enhanced security">
+    <meta name="keywords" content="calibration, behavioral biometrics, security setup">
+    <meta name="author" content="Behavioral Biometrics System">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-container">
+        <!-- Header -->
+        <header class="calibration-header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <h1>🔐 SecureAuth</h1>
+                        <span class="logo-subtitle">Behavioral Calibration</span>
+                    </div>
+                    <div class="header-status">
+                        <div id="connectionStatus" class="status-indicator status-online">
+                            <span class="status-dot"></span>
+                            Connected
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="content-wrapper">
+            <div class="container">
+                <div id="calibrationContainer" class="calibration-container">
+                    
+                    <!-- Welcome Section -->
+                    <div class="welcome-section">
+                        <div class="welcome-content">
+                            <h2>Welcome to Behavioral Calibration</h2>
+                            <p class="welcome-description">
+                                We'll now create your unique behavioral profile by analyzing how you type and use your mouse. 
+                                This process helps us learn your natural patterns to provide enhanced security.
+                            </p>
+                            <div class="calibration-benefits">
+                                <div class="benefit-item">
+                                    <span class="benefit-icon">🛡️</span>
+                                    <span class="benefit-text">Enhanced account security</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <span class="benefit-icon">🔍</span>
+                                    <span class="benefit-text">Continuous threat detection</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <span class="benefit-icon">⚡</span>
+                                    <span class="benefit-text">Seamless user experience</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Section -->
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <h3 id="currentTask">Getting Started</h3>
+                            <div id="status" class="status status-info">Ready to begin</div>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="progressBar" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <div id="progressText" class="progress-text">0% Complete</div>
+                        </div>
+                        
+                        <div class="phase-info">
+                            <div class="phase-steps">
+                                <div class="step-item active" data-phase="0">
+                                    <span class="step-number">1</span>
+                                    <span class="step-label">Free Typing</span>
+                                </div>
+                                <div class="step-item" data-phase="1">
+                                    <span class="step-number">2</span>
+                                    <span class="step-label">Text Copy</span>
+                                </div>
+                                <div class="step-item" data-phase="2">
+                                    <span class="step-number">3</span>
+                                    <span class="step-label">Password Practice</span>
+                                </div>
+                                <div class="step-item" data-phase="3">
+                                    <span class="step-number">4</span>
+                                    <span class="step-label">Mouse Interaction</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Instructions Section -->
+                    <div class="instructions-section">
+                        <div class="instructions-card">
+                            <h4>Instructions</h4>
+                            <p id="instructions">Click "Start" below to begin the calibration process. We'll guide you through each step.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Content Area -->
+                    <div class="phase-content-section">
+                        <div id="phaseContent" class="phase-content">
+                            <!-- Dynamic content will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Control Buttons -->
+                    <div class="control-section">
+                        <div class="control-buttons">
+                            <button id="skipButton" class="btn btn-ghost" style="display: none;">
+                                Skip Phase
+                            </button>
+                            <button id="nextButton" class="btn btn-primary" disabled>
+                                Next Phase
+                            </button>
+                            <button id="completeButton" class="btn btn-secondary" style="display: none;">
+                                Complete Calibration
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics Panel -->
+                    <div class="stats-panel">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">⌨️</div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="keystrokeCount">0</div>
+                                    <div class="stat-label">Keystrokes</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🖱️</div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="mouseEventCount">0</div>
+                                    <div class="stat-label">Mouse Events</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⏱️</div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="sessionTime">0:00</div>
+                                    <div class="stat-label">Session Time</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📊</div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="dataQuality">Good</div>
+                                    <div class="stat-label">Data Quality</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </main>
+        
+        <!-- Help Modal -->
+        <div id="helpModal" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Calibration Help</h3>
+                    <button class="modal-close" onclick="this.closeHelpModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="help-content">
+                        <h4>What is Behavioral Calibration?</h4>
+                        <p>
+                            Behavioral calibration creates a unique profile of how you interact with your computer. 
+                            This includes your typing rhythm, mouse movement patterns, and other behavioral characteristics.
+                        </p>
+                        
+                        <h4>Tips for Best Results:</h4>
+                        <ul>
+                            <li><strong>Be Natural:</strong> Type and move your mouse as you normally would</li>
+                            <li><strong>Stay Consistent:</strong> Use the same hand positions and posture throughout</li>
+                            <li><strong>Take Your Time:</strong> There's no rush - accuracy is more important than speed</li>
+                            <li><strong>Avoid Distractions:</strong> Focus on the tasks to ensure consistent data</li>
+                        </ul>
+                        
+                        <h4>Privacy & Security:</h4>
+                        <p>
+                            Your behavioral data is encrypted and stored securely. We only analyze patterns, 
+                            not the actual content of what you type. This data is used exclusively for 
+                            authentication purposes.
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="this.closeHelpModal()">
+                        Got It
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="calibration-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-links">
+                        <button onclick="this.showHelpModal()" class="footer-link-btn">
+                            Need Help?
+                        </button>
+                        <a href="#" class="footer-link">Privacy Policy</a>
+                        <a href="#" class="footer-link">Security Information</a>
+                    </div>
+                    <div class="footer-info">
+                        <span class="security-indicator">🔒 Secure Connection</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Data Collection Indicator -->
+    <div id="dataSentIndicator" class="data-indicator">
+        <span class="indicator-icon">📊</span>
+        Data Collected
+    </div>
+    
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/calib.js') }}"></script>
+    
+    <style>
+        /* Calibration-specific styles */
+        .calibration-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            background: none;
+            -webkit-text-fill-color: white;
+        }
+        
+        .logo-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .calibration-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+        
+        .welcome-section {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            text-align: center;
+        }
+        
+        .welcome-content h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .welcome-description {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .calibration-benefits {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+        
+        .benefit-icon {
+            font-size: 1.25rem;
+        }
+        
+        .progress-section {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .progress-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+        
+        .progress-container {
+            margin-bottom: 2rem;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .phase-steps {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .step-item.active {
+            background: rgba(37, 99, 235, 0.1);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .step-item.completed {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid var(--success-color);
+        }
+        
+        .step-number {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: var(--gray-300);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+        
+        .step-item.active .step-number {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .step-item.completed .step-number {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        
+        .step-item.active .step-label,
+        .step-item.completed .step-label {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .instructions-section {
+            margin-bottom: 2rem;
+        }
+        
+        .instructions-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            border-left: 4px solid var(--info-color);
+        }
+        
+        .instructions-card h4 {
+            margin-bottom: 0.75rem;
+            color: var(--info-color);
+        }
+        
+        .instructions-card p {
+            margin: 0;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .phase-content-section {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            min-height: 300px;
+        }
+        
+        .phase-content {
+            width: 100%;
+        }
+        
+        .control-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .stats-panel {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .stat-icon {
+            font-size: 1.5rem;
+            opacity: 0.8;
+        }
+        
+        .stat-content {
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .calibration-footer {
+            background: var(--bg-secondary);
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--gray-200);
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .footer-link-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        .footer-link-btn:hover {
+            text-decoration: underline;
+        }
+        
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+        
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .security-indicator {
+            font-size: 0.875rem;
+            color: var(--success-color);
+            font-weight: 500;
+        }
+        
+        .data-indicator {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all var(--transition-normal);
+            z-index: 1000;
+        }
+        
+        .data-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .help-content h4 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary-color);
+        }
+        
+        .help-content h4:first-child {
+            margin-top: 0;
+        }
+        
+        .help-content ul {
+            margin-left: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .help-content li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .help-content strong {
+            color: var(--text-primary);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+        }
+        
+        .modal-close:hover {
+            background: var(--gray-200);
+            color: var(--text-primary);
+        }
+        
+        @media (max-width: 768px) {
+            .calibration-container {
+                padding: 1rem 0;
+            }
+            
+            .welcome-section,
+            .progress-section,
+            .phase-content-section,
+            .stats-panel {
+                padding: 1.5rem;
+            }
+            
+            .phase-steps {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .step-item {
+                flex-direction: row;
+                justify-content: flex-start;
+                padding: 0.75rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .calibration-benefits {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+    </style>
+    
+    <script>
+        // Helper functions for modal
+        function showHelpModal() {
+            document.getElementById('helpModal').classList.add('active');
+        }
+        
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+        
+        // Update session time
+        const sessionStart = Date.now();
+        setInterval(() => {
+            const elapsed = Date.now() - sessionStart;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('sessionTime').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+    </script>
+</body>
+</html>

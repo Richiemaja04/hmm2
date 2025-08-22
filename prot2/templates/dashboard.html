@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Dashboard - SecureAuth</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Real-time behavioral security monitoring dashboard">
+    <meta name="keywords" content="dashboard, security monitoring, behavioral analytics">
+    <meta name="author" content="Behavioral Biometrics System">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Socket.IO CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="container">
+                <nav class="dashboard-nav">
+                    <div class="nav-left">
+                        <h1 class="dashboard-title">
+                            🔐 SecureAuth Dashboard
+                        </h1>
+                        <div class="nav-status">
+                            <div id="connectionStatus" class="status-indicator status-online">
+                                <span class="status-dot"></span>
+                                Connected
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-right">
+                        <div class="nav-controls">
+                            <div class="monitoring-toggle-container">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="monitoringToggle" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-text">Monitoring</span>
+                            </div>
+                            
+                            <button id="settingsBtn" class="btn btn-ghost btn-sm">
+                                ⚙️ Settings
+                            </button>
+                            
+                            <button id="exportBtn" class="btn btn-ghost btn-sm">
+                                📊 Export
+                            </button>
+                            
+                            <button id="logoutBtn" class="btn btn-outline btn-sm">
+                                🚪 Logout
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-main">
+            <div class="container">
+                
+                <!-- Status Overview -->
+                <section class="status-overview">
+                    <div class="dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <h3>Security Status</h3>
+                                <div id="securityStatus" class="status-indicator status-online">
+                                    <span class="status-dot"></span>
+                                    Secure
+                                </div>
+                            </div>
+                            <div class="stat-content">
+                                <div id="monitoringIndicator" class="status-indicator status-online">
+                                    <span class="status-dot"></span>
+                                    Normal Behavior
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <h3>Session Info</h3>
+                                <div id="trainingStatus" class="status-indicator status-success">
+                                    <span class="status-dot"></span>
+                                    Models Ready
+                                </div>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-item">
+                                    <span class="stat-label">Session Uptime</span>
+                                    <span id="sessionUptime" class="stat-value">0:00</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Sessions (7 days)</span>
+                                    <span id="sessionsCount" class="stat-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <h3>Activity Metrics</h3>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-item">
+                                    <span class="stat-label">Keystrokes</span>
+                                    <span id="keystrokeCount" class="stat-value">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Mouse Events</span>
+                                    <span id="mouseEventCount" class="stat-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <h3>Security Metrics</h3>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-item">
+                                    <span class="stat-label">Anomalies Today</span>
+                                    <span id="anomaliesCount" class="stat-value">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Auth Accuracy</span>
+                                    <span id="accuracy" class="stat-value">99.2%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Real-time Monitoring -->
+                <section class="monitoring-section">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Real-time Typing Speed</h3>
+                            <div class="chart-controls">
+                                <div id="dataSentIndicator" class="data-sent-indicator">
+                                    📡 Data Sent
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="typingSpeedChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Analytics Grid -->
+                <section class="analytics-section">
+                    <div class="analytics-grid">
+                        <!-- Anomaly Distribution -->
+                        <div class="chart-container">
+                            <h3 class="chart-title">Anomaly Distribution</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="anomalyChart" width="300" height="300"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Feature Deviations -->
+                        <div class="chart-container">
+                            <h3 class="chart-title">Feature Analysis</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="featureChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- System Status -->
+                        <div class="chart-container">
+                            <h3 class="chart-title">System Activity</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="statusChart" width="300" height="300"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Activity Timeline -->
+                        <div class="activity-timeline">
+                            <h3 class="chart-title">Recent Activity</h3>
+                            <div class="timeline-container">
+                                <div class="timeline-item">
+                                    <div class="timeline-dot status-success"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Session Started</div>
+                                        <div class="timeline-time" id="sessionStartTime">Just now</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot status-info"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Behavioral Models Loaded</div>
+                                        <div class="timeline-time">30 seconds ago</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot status-success"></div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Authentication Successful</div>
+                                        <div class="timeline-time">1 minute ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Monitoring Status Panel -->
+                <section class="monitoring-status-section">
+                    <div class="monitoring-panel">
+                        <div class="panel-header">
+                            <h3>Live Monitoring Status</h3>
+                            <div id="monitoringStatus" class="status-indicator status-online">
+                                <span class="status-dot"></span>
+                                Active Monitoring
+                            </div>
+                        </div>
+                        
+                        <div class="panel-content">
+                            <div class="monitoring-grid">
+                                <div class="monitoring-item">
+                                    <div class="monitoring-icon">⌨️</div>
+                                    <div class="monitoring-info">
+                                        <div class="monitoring-label">Keystroke Analysis</div>
+                                        <div class="monitoring-status">Active</div>
+                                        <div class="monitoring-metric">Real-time pattern matching</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="monitoring-item">
+                                    <div class="monitoring-icon">🖱️</div>
+                                    <div class="monitoring-info">
+                                        <div class="monitoring-label">Mouse Behavior</div>
+                                        <div class="monitoring-status">Active</div>
+                                        <div class="monitoring-metric">Movement analysis enabled</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="monitoring-item">
+                                    <div class="monitoring-icon">🤖</div>
+                                    <div class="monitoring-info">
+                                        <div class="monitoring-label">AI Detection</div>
+                                        <div class="monitoring-status">Online</div>
+                                        <div class="monitoring-metric">Ensemble models running</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="monitoring-item">
+                                    <div class="monitoring-icon">🔍</div>
+                                    <div class="monitoring-info">
+                                        <div class="monitoring-label">Anomaly Detection</div>
+                                        <div class="monitoring-status">Monitoring</div>
+                                        <div class="monitoring-metric">Multi-layer analysis</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+        
+        <!-- Message Container for Notifications -->
+        <div id="messageContainer" class="message-container"></div>
+        
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Dashboard Settings</h3>
+                    <button class="modal-close" onclick="this.closeSettings()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-content">
+                        <div class="setting-section">
+                            <h4>Monitoring Options</h4>
+                            <div class="setting-item">
+                                <label class="setting-label">
+                                    <input type="checkbox" id="keystrokeMonitoring" checked>
+                                    <span class="setting-text">Keystroke Monitoring</span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label class="setting-label">
+                                    <input type="checkbox" id="mouseMonitoring" checked>
+                                    <span class="setting-text">Mouse Monitoring</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h4>Notification Preferences</h4>
+                            <div class="setting-item">
+                                <label class="setting-label">
+                                    <input type="checkbox" id="anomalyAlerts" checked>
+                                    <span class="setting-text">Anomaly Alerts</span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label class="setting-label">
+                                    <input type="checkbox" id="securityAlerts" checked>
+                                    <span class="setting-text">Security Alerts</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-section">
+                            <h4>Data Collection</h4>
+                            <div class="setting-item">
+                                <label class="setting-label">
+                                    Data Collection Frequency:
+                                    <select id="collectionFrequency" class="setting-select">
+                                        <option value="15">15 seconds</option>
+                                        <option value="30" selected>30 seconds</option>
+                                        <option value="60">1 minute</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="this.saveSettings()">
+                        Save Settings
+                    </button>
+                    <button class="btn btn-outline" onclick="this.closeSettings()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-info">
+                        <span class="security-status">🔒 Secure Session Active</span>
+                        <span class="build-info">v2.1.0 | Build 2024.08.20</span>
+                    </div>
+                    <div class="footer-links">
+                        <a href="#">Help & Support</a>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Security Information</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Scripts -->
+     <script src="{{ url_for('static', filename='js/BehavioralCollector.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    
+    <style>
+        /* Dashboard-specific styles */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .dashboard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .dashboard-title {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            background: none;
+            -webkit-text-fill-color: white;
+        }
+        
+        .nav-status .status-indicator {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .nav-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .monitoring-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .toggle-label {
+            position: relative;
+            display: inline-block;
+            width: 3rem;
+            height: 1.5rem;
+        }
+        
+        .toggle-label input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: var(--transition-fast);
+            border-radius: 1.5rem;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 1.25rem;
+            width: 1.25rem;
+            left: 0.125rem;
+            bottom: 0.125rem;
+            background-color: white;
+            transition: var(--transition-fast);
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--success-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(1.5rem);
+        }
+        
+        .toggle-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .status-overview {
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .stat-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .monitoring-section {
+            margin-bottom: 2rem;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .data-sent-indicator {
+            background: var(--success-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all var(--transition-fast);
+        }
+        
+        .data-sent-indicator.show {
+            opacity: 1;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+        }
+        
+        .analytics-section {
+            margin-bottom: 2rem;
+        }
+        
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .activity-timeline {
+            background: var(--bg-primary);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .timeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .timeline-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+        
+        .timeline-dot.status-success {
+            background: var(--success-color);
+        }
+        
+        .timeline-dot.status-info {
+            background: var(--info-color);
+        }
+        
+        .timeline-dot.status-warning {
+            background: var(--warning-color);
+        }
+        
+        .timeline-content {
+            flex: 1;
+        }
+        
+        .timeline-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .timeline-time {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .monitoring-status-section {
+            margin-bottom: 2rem;
+        }
+        
+        .monitoring-panel {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: var(--bg-secondary);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+        
+        .panel-content {
+            padding: 2rem;
+        }
+        
+        .monitoring-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .monitoring-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+        
+        .monitoring-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .monitoring-icon {
+            font-size: 1.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: var(--radius-md);
+            flex-shrink: 0;
+        }
+        
+        .monitoring-info {
+            flex: 1;
+        }
+        
+        .monitoring-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .monitoring-status {
+            font-size: 0.875rem;
+            color: var(--success-color);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .monitoring-metric {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .dashboard-footer {
+            background: var(--bg-secondary);
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--gray-200);
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-info {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .security-status {
+            color: var(--success-color);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .build-info {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .setting-section h4 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .setting-item {
+            margin-bottom: 1rem;
+        }
+        
+        .setting-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+        
+        .setting-text {
+            flex: 1;
+        }
+        
+        .setting-select {
+            margin-left: auto;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .message-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: var(--z-notification);
+            max-width: 400px;
+        }
+        
+        @media (max-width: 1200px) {
+            .analytics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-left,
+            .nav-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .nav-controls {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .monitoring-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .footer-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-wrapper {
+                height: 250px;
+                padding: 0.5rem;
+            }
+            
+            .monitoring-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.75rem;
+            }
+        }
+    </style>
+    
+    <script>
+        // Settings modal functions
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+        
+        function saveSettings() {
+            // Collect settings values
+            const settings = {
+                keystrokeMonitoring: document.getElementById('keystrokeMonitoring').checked,
+                mouseMonitoring: document.getElementById('mouseMonitoring').checked,
+                anomalyAlerts: document.getElementById('anomalyAlerts').checked,
+                securityAlerts: document.getElementById('securityAlerts').checked,
+                collectionFrequency: document.getElementById('collectionFrequency').value
+            };
+            
+            // Save settings (this would typically send to server)
+            localStorage.setItem('dashboardSettings', JSON.stringify(settings));
+            
+            // Show success message
+            showNotification('Settings saved successfully', 'success');
+            
+            closeSettings();
+        }
+        
+        function showNotification(message, type) {
+            // This function would be implemented in dashboard.js
+            console.log(`${type}: ${message}`);
+        }
+        
+        // Settings button click handler
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('settingsBtn').addEventListener('click', function() {
+                document.getElementById('settingsModal').classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

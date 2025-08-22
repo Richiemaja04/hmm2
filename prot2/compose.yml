@@ -1,0 +1,269 @@
+# Behavioral Biometrics Authentication Agent - Docker Compose Configuration
+# Provides complete development and production environments
+
+version: '3.8'
+
+# Shared configuration
+x-common-variables: &common-variables
+  SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-jwt-key-change-in-production}
+  DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-secureauth123}@postgres:5432/${POSTGRES_DB:-behavioral_auth}
+  REDIS_URL: redis://redis:6379/0
+
+x-app-base: &app-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment:
+    <<: *common-variables
+  volumes:
+    - ./logs:/app/logs
+    - ./data:/app/data
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  # Main application
+  app:
+    <<: *app-base
+    target: production
+    container_name: behavioral-auth-app
+    ports:
+      - "${PORT:-5000}:5000"
+    environment:
+      <<: *common-variables
+      FLASK_ENV: production
+      FLASK_DEBUG: "False"
+      WORKERS: ${WORKERS:-2}
+      WORKER_CONNECTIONS: ${WORKER_CONNECTIONS:-1000}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.behavioral-auth.rule=Host(`localhost`)"
+      - "traefik.http.services.behavioral-auth.loadbalancer.server.port=5000"
+
+  # Development application
+  app-dev:
+    <<: *app-base
+    target: development
+    container_name: behavioral-auth-dev
+    ports:
+      - "${DEV_PORT:-5001}:5000"
+    environment:
+      <<: *common-variables
+      FLASK_ENV: development
+      FLASK_DEBUG: "True"
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - ./data:/app/data
+    command: ["python", "run.py", "--host", "0.0.0.0", "--port", "5000"]
+    profiles:
+      - dev
+    
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: behavioral-auth-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-behavioral_auth}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secureauth123}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-behavioral_auth}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: behavioral-auth-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-secureauth123}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-secureauth123}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: behavioral-auth-nginx
+    ports:
+      - "${NGINX_PORT:-80}:80"
+      - "${NGINX_SSL_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./static:/var/www/static:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: behavioral-auth-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: behavioral-auth-grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Log Management - Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    container_name: behavioral-auth-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    profiles:
+      - logging
+
+  # Log Management - Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.9.0
+    container_name: behavioral-auth-kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "${KIBANA_PORT:-5601}:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - logging
+
+  # Testing Environment
+  test:
+    <<: *app-base
+    target: testing
+    container_name: behavioral-auth-test
+    environment:
+      <<: *common-variables
+      FLASK_ENV: testing
+      TESTING: "True"
+      DATABASE_URL: sqlite:///:memory:
+    command: ["python", "-m", "pytest", "--cov=.", "--cov-report=html", "--cov-report=term", "-v"]
+    volumes:
+      - .:/app
+      - ./test-reports:/app/htmlcov
+    profiles:
+      - test
+
+  # Database Migration Tool
+  migrate:
+    <<: *app-base
+    target: production
+    container_name: behavioral-auth-migrate
+    environment:
+      <<: *common-variables
+    command: ["python", "-c", "from database.db_manager import DatabaseManager; from config import Config; db = DatabaseManager(Config.DATABASE_URL); db.init_database(); print('Database initialized successfully')"]
+    profiles:
+      - migration
+
+  # Load Testing
+  locust:
+    image: locustio/locust:latest
+    container_name: behavioral-auth-locust
+    ports:
+      - "${LOCUST_PORT:-8089}:8089"
+    volumes:
+      - ./tests/load:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --host=http://app:5000
+    depends_on:
+      - app
+    profiles:
+      - load-test
+
+# Named volumes for data persistence
+volumes:
+  postgres_data:
+    name: behavioral_auth_postgres_data
+  redis_data:
+    name: behavioral_auth_redis_data
+  prometheus_data:
+    name: behavioral_auth_prometheus_data
+  grafana_data:
+    name: behavioral_auth_grafana_data
+  elasticsearch_data:
+    name: behavioral_auth_elasticsearch_data
+
+# Networks
+networks:
+  default:
+    name: behavioral_auth_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Behavioral Biometrics Authentication - Login</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Secure login with behavioral biometrics authentication">
+    <meta name="keywords" content="security, authentication, biometrics, login">
+    <meta name="author" content="Behavioral Biometrics System">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-container">
+        <!-- Header -->
+        <header class="login-header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <h1>🔐 SecureAuth</h1>
+                        <span class="logo-subtitle">Behavioral Biometrics</span>
+                    </div>
+                    <div class="header-info">
+                        <span class="security-badge">
+                            <span class="badge-icon">🛡️</span>
+                            Advanced Security
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="content-wrapper">
+            <div class="container">
+                <div class="login-container">
+                    <!-- Login Card -->
+                    <div class="card login-card">
+                        <div class="card-header">
+                            <h2>Welcome Back</h2>
+                            <p>Sign in to your secure account</p>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Message Container -->
+                            <div id="messageContainer" class="message-container"></div>
+                            
+                            <!-- Login Form -->
+                            <form id="loginForm" class="login-form">
+                                <div class="form-group form-group-floating">
+                                    <input 
+                                        type="text" 
+                                        id="username" 
+                                        name="username" 
+                                        class="form-input" 
+                                        placeholder=" "
+                                        autocomplete="username"
+                                        required
+                                        aria-describedby="username-help"
+                                    >
+                                    <label for="username" class="form-label">Username</label>
+                                </div>
+                                <div id="username-help" class="form-help">
+                                    Enter your username or email address
+                                </div>
+                                
+                                <div class="form-group form-group-floating">
+                                    <input 
+                                        type="password" 
+                                        id="password" 
+                                        name="password" 
+                                        class="form-input" 
+                                        placeholder=" "
+                                        autocomplete="current-password"
+                                        required
+                                        aria-describedby="password-help"
+                                    >
+                                    <label for="password" class="form-label">Password</label>
+                                </div>
+                                <div id="password-help" class="form-help">
+                                    Enter your account password
+                                </div>
+                                
+                                <div class="form-options">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                                        <span class="checkmark"></span>
+                                        Remember me
+                                    </label>
+                                    <a href="#" class="forgot-password">Forgot password?</a>
+                                </div>
+                                
+                                <button type="submit" id="loginButton" class="btn btn-primary btn-full btn-lg">
+                                    <span class="btn-text">Sign In</span>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <div class="signup-prompt">
+                                Don't have an account? 
+                                <a href="#" class="signup-link">Create one now</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Security Info -->
+                    <div class="security-info">
+                        <div class="security-features">
+                            <h3>🔒 Enhanced Security Features</h3>
+                            <div class="feature-grid">
+                                <div class="feature-item">
+                                    <div class="feature-icon">⌨️</div>
+                                    <div class="feature-content">
+                                        <h4>Keystroke Analysis</h4>
+                                        <p>Unique typing patterns for identification</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">🖱️</div>
+                                    <div class="feature-content">
+                                        <h4>Mouse Behavior</h4>
+                                        <p>Movement patterns and click analysis</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">🤖</div>
+                                    <div class="feature-content">
+                                        <h4>AI Protection</h4>
+                                        <p>Machine learning threat detection</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">⚡</div>
+                                    <div class="feature-content">
+                                        <h4>Real-time Monitoring</h4>
+                                        <p>Continuous authentication during session</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="privacy-notice">
+                            <div class="privacy-icon">🔐</div>
+                            <div class="privacy-content">
+                                <h4>Your Privacy is Protected</h4>
+                                <p>We use advanced behavioral biometrics to enhance security without compromising your privacy. Your behavioral patterns are encrypted and stored securely.</p>
+                                <a href="#" class="privacy-link">Learn more about our privacy policy</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="login-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-links">
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Support</a>
+                        <a href="#">About</a>
+                    </div>
+                    <div class="footer-copyright">
+                        <p>&copy; 2024 SecureAuth. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Authenticating...</p>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+    
+    <style>
+        /* Login-specific styles */
+        .login-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            background: none;
+            -webkit-text-fill-color: white;
+        }
+        
+        .logo-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .login-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .login-card {
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .form-help {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .checkbox-container input[type="checkbox"] {
+            appearance: none;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-sm);
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .checkbox-container input[type="checkbox"]:checked {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .checkbox-container input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .forgot-password {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+        
+        .signup-prompt {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .signup-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .signup-link:hover {
+            text-decoration: underline;
+        }
+        
+        .security-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .security-features {
+            background: var(--bg-primary);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .security-features h3 {
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .feature-item {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+        
+        .feature-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .feature-content h4 {
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .feature-content p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .privacy-notice {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(16, 185, 129, 0.05));
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(37, 99, 235, 0.1);
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .privacy-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        
+        .privacy-content h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        
+        .privacy-content p {
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .privacy-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .privacy-link:hover {
+            text-decoration: underline;
+        }
+        
+        .login-footer {
+            background: var(--bg-secondary);
+            padding: 2rem 0;
+            border-top: 1px solid var(--gray-200);
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        .footer-copyright p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            color: white;
+        }
+        
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</body>
+</html>
